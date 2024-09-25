@@ -1,0 +1,13 @@
+venv/
+env/
+media/
+static/
+postgres-data/
+#.env
+
+__pycache__/
+.DS_Store
+.idea
+.vscode
+src/cib_reports/*
+.save.env
