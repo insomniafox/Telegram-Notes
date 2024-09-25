@@ -14,8 +14,7 @@ class BaseUserSchema(BaseModel):
     login: constr(max_length=50)
     first_name: constr(max_length=64)
     last_name: constr(max_length=64)
-    telegram_username: Optional[constr(max_length=32)] = None
-    telegram_chat_id: Optional[constr(max_length=123)] = None
+    telegram_id: Optional[str] = None
 
 
 class UserSchema(BaseUserSchema):

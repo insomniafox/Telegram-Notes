@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from db.database import get_sqlalchemy_session
 from models.users.models import User
@@ -13,7 +13,7 @@ router = APIRouter(prefix='/notes', tags=['notes'])
 @router.get('/', response_model=list[NoteSchema])
 async def get_notes(
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sqlalchemy_session)
+    db: AsyncSession = Depends(get_sqlalchemy_session)
 ):
     response = await NotesService().get_notes(user_id=current_user.id, db=db)
     return response
@@ -23,9 +23,13 @@ async def get_notes(
 async def get_note(
     note_id: int,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sqlalchemy_session)
+    db: AsyncSession = Depends(get_sqlalchemy_session)
 ):
-    response = await NotesService().get_note(note_id=note_id, user_id=current_user.id, db=db)
+    response = await NotesService().get_note(
+        note_id=note_id,
+        user_id=current_user.id,
+        db=db
+    )
     return response
 
 
@@ -33,7 +37,7 @@ async def get_note(
 async def create_note(
     request: CreateNoteSchema,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sqlalchemy_session)
+    db: AsyncSession = Depends(get_sqlalchemy_session)
 ):
     response = await NotesService().create_note(
         title=request.title,
@@ -50,7 +54,7 @@ async def update_note(
     note_id: int,
     request: UpdateNoteSchema,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sqlalchemy_session)
+    db: AsyncSession = Depends(get_sqlalchemy_session)
 ):
     response = await NotesService().update_note(
         note_id=note_id,
@@ -65,7 +69,11 @@ async def update_note(
 async def delete_note(
     note_id: int,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sqlalchemy_session)
+    db: AsyncSession = Depends(get_sqlalchemy_session)
 ):
-    await NotesService().delete_note(note_id=note_id, user_id=current_user.id, db=db)
+    await NotesService().delete_note(
+        note_id=note_id,
+        user_id=current_user.id,
+        db=db
+    )
     return {}

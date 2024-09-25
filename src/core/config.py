@@ -23,6 +23,9 @@ class Settings(BaseSettings):
     POSTGRES_PASSWORD: str = Field(..., env='POSTGRES_PASSWORD')
     POSTGRES_DB: str = Field(..., env='POSTGRES_DB')
 
+    TELEGRAM_BOT_USERNAME: str = Field(..., env='TELEGRAM_BOT_USERNAME')
+    TELEGRAM_ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(..., env='TELEGRAM_ACCESS_TOKEN_EXPIRE_MINUTES')
+
     class Config:
         env_file = '.env'
 

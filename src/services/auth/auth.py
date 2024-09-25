@@ -1,9 +1,9 @@
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 from typing import Optional
 
 from fastapi import Depends
 from sqlalchemy import select, delete
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 from jose import jwt
 
 from db.database import get_sqlalchemy_session
@@ -27,7 +27,7 @@ async def create_refresh_token(
     user: User,
     data: dict,
     expire: Optional[datetime] = None,
-    db: Session = Depends(get_sqlalchemy_session)
+    db: AsyncSession = Depends(get_sqlalchemy_session)
 ) -> str:
     if not expire:
         expire = datetime.utcnow() + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
@@ -51,7 +51,7 @@ async def create_refresh_token(
 async def authenticate_user(
     login: str,
     password: str,
-    db: Session = Depends(get_sqlalchemy_session)
+    db: AsyncSession = Depends(get_sqlalchemy_session)
 ):
     user = await UserService().get_user(db=db, login=login)
     if verify_password(password, user.password):
@@ -61,7 +61,7 @@ async def authenticate_user(
 
 async def token_refresh(
     refresh_token: str,
-    db: Session = Depends(get_sqlalchemy_session)
+    db: AsyncSession = Depends(get_sqlalchemy_session)
 ) -> dict[str, str]:
     try:
         payload = jwt.decode(refresh_token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])

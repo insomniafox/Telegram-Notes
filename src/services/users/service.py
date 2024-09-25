@@ -1,8 +1,8 @@
-from typing import Optional
+from typing import Optional, Sequence
 
 from fastapi import Depends
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from db.database import get_sqlalchemy_session
 from models.users.models import User, Role
@@ -13,15 +13,15 @@ from services.users.exceptions import UserFotFoundException
 class UserService:
     async def get_users(
         self,
-        db: Session = Depends(get_sqlalchemy_session),
+        db: AsyncSession = Depends(get_sqlalchemy_session),
         **filters
-    ) -> list[User]:
+    ) -> Sequence[User]:
         result = await db.execute(select(User).filter_by(**filters))
         return result.scalars().all()
 
     async def get_user(
         self,
-        db: Session = Depends(get_sqlalchemy_session),
+        db: AsyncSession = Depends(get_sqlalchemy_session),
         raise_exception: bool = True,
         **filters
     ) -> User | None:
@@ -40,7 +40,7 @@ class UserService:
         role: Optional[str] = None,
         telegram_username: Optional[str] = None,
         telegram_chat_id: Optional[str] = None,
-        db: Session = Depends(get_sqlalchemy_session)
+        db: AsyncSession = Depends(get_sqlalchemy_session)
     ) -> User:
         if not role:
             role = Role.USER

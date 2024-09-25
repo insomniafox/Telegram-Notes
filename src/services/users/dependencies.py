@@ -1,4 +1,4 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import Depends
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt, ExpiredSignatureError
@@ -22,7 +22,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 async def get_current_user(
     token: str = Depends(oauth2_scheme),
-    db: Session = Depends(get_sqlalchemy_session)
+    db: AsyncSession = Depends(get_sqlalchemy_session)
 ) -> User:
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, settings.ALGORITHM)
@@ -45,7 +45,7 @@ async def get_current_user(
 
 async def get_current_admin_user(
     token: str = Depends(oauth2_scheme),
-    db: Session = Depends(get_sqlalchemy_session)
+    db: AsyncSession = Depends(get_sqlalchemy_session)
 ) -> User:
     user = await get_current_user(token, db)
 

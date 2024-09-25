@@ -1,7 +1,7 @@
 from typing import Optional
 
 from fastapi import Depends
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from db.database import get_sqlalchemy_session
 from models.users.models import User
@@ -17,7 +17,7 @@ async def register_user(
     role: Optional[str] = None,
     telegram_username: Optional[str] = None,
     telegram_chat_id: Optional[str] = None,
-    db: Session = Depends(get_sqlalchemy_session)
+    db: AsyncSession = Depends(get_sqlalchemy_session)
 ) -> User:
     user = await UserService().get_user(login=login, db=db, raise_exception=False)
     if user:

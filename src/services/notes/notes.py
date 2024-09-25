@@ -1,5 +1,7 @@
+from typing import Sequence
+
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import Depends, status
 
 from db.database import get_sqlalchemy_session
@@ -11,9 +13,9 @@ from services.notes.exceptions import NoteServiceException
 class NotesService:
     async def get_notes(
         self,
-        db: Session = Depends(get_sqlalchemy_session),
+        db: AsyncSession = Depends(get_sqlalchemy_session),
         **filters
-    ) -> list[Note]:
+    ) -> Sequence[Note]:
         query = await db.execute(select(Note).filter_by(**filters))
         notes = query.scalars().all()
         return notes
@@ -22,7 +24,7 @@ class NotesService:
         self,
         note_id: int,
         user_id: int,
-        db: Session = Depends(get_sqlalchemy_session),
+        db: AsyncSession = Depends(get_sqlalchemy_session),
     ) -> Note:
         result = await db.execute(select(Note).filter_by(id=note_id, user_id=user_id))
         note = result.scalars().first()
@@ -39,7 +41,7 @@ class NotesService:
         content: str,
         tags: list[str],
         user: User,
-        db: Session = Depends(get_sqlalchemy_session)
+        db: AsyncSession = Depends(get_sqlalchemy_session)
     ) -> Note:
         note = Note(
             title=title,
@@ -57,7 +59,7 @@ class NotesService:
         note_id: int,
         update_data: dict,
         user_id: int,
-        db: Session = Depends(get_sqlalchemy_session)
+        db: AsyncSession = Depends(get_sqlalchemy_session)
     ):
         note: Note = await self.get_note(note_id=note_id, user_id=user_id, db=db)
         for key, value in update_data.items():
@@ -70,7 +72,7 @@ class NotesService:
         self,
         note_id: int,
         user_id: int,
-        db: Session = Depends(get_sqlalchemy_session)
+        db: AsyncSession = Depends(get_sqlalchemy_session)
     ):
         note: Note = await self.get_note(note_id=note_id, user_id=user_id, db=db)
         await db.delete(note)

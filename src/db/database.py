@@ -15,7 +15,7 @@ DATABASE_URL = "postgresql+asyncpg://{user}:{password}@{host}:{port}/{db}".forma
 engine = create_async_engine(DATABASE_URL, pool_pre_ping=True)
 
 
-async def get_sqlalchemy_session():
+async def get_sqlalchemy_session() -> AsyncSession:
     SessionLocal = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
     session = SessionLocal()
     try:

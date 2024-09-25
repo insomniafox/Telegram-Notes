@@ -24,8 +24,8 @@ class User(BaseModel):
     role = Column(Enum(Role), nullable=False, default=Role.USER)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
-    telegram_username = Column(String(length=32), nullable=True)
-    telegram_chat_id = Column(String(128), nullable=True)
+    telegram_id = Column(String, nullable=True)
+    telegram_link_token = Column(String(length=12), nullable=True)
 
     notes = relationship('Note', back_populates='user')
     refresh_token = relationship('RefreshToken', back_populates='user', cascade='all, delete-orphan')
