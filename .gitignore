@@ -3,7 +3,7 @@ env/
 media/
 static/
 postgres-data/
-#.env
+.env
 
 __pycache__/
 .DS_Store
