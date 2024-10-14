@@ -75,7 +75,7 @@ async def get_user(
     return user
 
 
-@router.get('/', tags=['users'], response_model=list[UserSchema])
+@router.get('', tags=['users'], response_model=list[UserSchema])
 async def get_user(
     db: AsyncSession = Depends(get_sqlalchemy_session),
     current_user: User = Depends(get_current_admin_user)

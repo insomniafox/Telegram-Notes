@@ -19,7 +19,7 @@ async def get_telegram_link_token(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_sqlalchemy_session)
 ):
-    token = await TelegramService().set_telegram_link_token(user=current_user, db=db)
+    token = await TelegramService.set_telegram_link_token(user=current_user, db=db)
     response = f'https://t.me/{settings.TELEGRAM_BOT_USERNAME}?start={quote(token)}'
     return response
 
@@ -29,7 +29,7 @@ async def set_telegram_id(
     request: SetTelegramIdSchema,
     db: AsyncSession = Depends(get_sqlalchemy_session)
 ) -> UserSchema:
-    user = await TelegramService().set_user_telegram_id(
+    user = await TelegramService.set_user_telegram_id(
         token=request.token,
         telegram_id=request.telegram_id,
         db=db
@@ -40,7 +40,7 @@ async def set_telegram_id(
 @router.post('/auth')
 async def telegram_bot_auth(
     telegram_id: str | int,
-    current_user: User = Depends(get_current_user)
+    db: AsyncSession = Depends(get_sqlalchemy_session)
 ):
-    response = await TelegramService().get_telegram_access_token(current_user, telegram_id)
+    response = await TelegramService.get_telegram_access_token(telegram_id, db=db)
     return response

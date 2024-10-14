@@ -1,5 +1,7 @@
-from pydantic import BaseModel, field_validator
 from datetime import datetime
+from typing import Optional
+
+from pydantic import BaseModel, field_validator
 
 from schemas.users import UserSchema
 
@@ -32,3 +34,10 @@ class NoteSchema(BaseNoteSchema):
 
     class Config:
         from_attributes = True
+
+
+class PaginatedNoteSchema(BaseModel):
+    count: int
+    next: Optional[str] = None
+    previous: Optional[str] = None
+    result: list[NoteSchema]

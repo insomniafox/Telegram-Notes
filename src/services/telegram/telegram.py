@@ -14,8 +14,9 @@ from services.users.service import UserService
 
 
 class TelegramService:
+    @classmethod
     async def set_telegram_link_token(
-        self,
+        cls,
         user: User,
         db: AsyncSession = Depends(get_sqlalchemy_session)
     ) -> str:
@@ -27,8 +28,9 @@ class TelegramService:
         await db.refresh(user)
         return token
 
+    @classmethod
     async def set_user_telegram_id(
-        self,
+        cls,
         token: str,
         telegram_id: int | str,
         db: AsyncSession = Depends(get_sqlalchemy_session)
@@ -39,7 +41,13 @@ class TelegramService:
         await db.refresh(user)
         return user
 
-    async def get_telegram_access_token(self, user: User, telegram_id: int | str) -> dict:
+    @classmethod
+    async def get_telegram_access_token(
+        cls,
+        telegram_id: int | str,
+        db: AsyncSession = Depends(get_sqlalchemy_session)
+    ) -> dict:
+        user: User = await UserService().get_user(telegram_id=telegram_id, db=db)
         if not user.telegram_id:
             raise UserHasNoTelegramLinked
         if user.telegram_id != telegram_id:

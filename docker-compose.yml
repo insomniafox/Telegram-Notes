@@ -27,6 +27,18 @@ services:
     networks:
       - telegram_notes_net
 
+  telegram_bot:
+    build: ./src
+    volumes:
+      - ./src:/app
+    entrypoint: python telegram_bot/bot.py
+    restart: always
+    container_name: telegram-notes-bot
+    env_file:
+      - .env
+    networks:
+      - telegram_notes_net
+
 networks:
   telegram_notes_net:
     external:

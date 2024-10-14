@@ -1,21 +1,31 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from db.database import get_sqlalchemy_session
 from models.users.models import User
-from schemas.notes import NoteSchema, CreateNoteSchema, UpdateNoteSchema
-from services.notes.notes import NotesService
+from schemas.notes import NoteSchema, CreateNoteSchema, UpdateNoteSchema, PaginatedNoteSchema
+from services.notes.notes import get_paginated_notes
+from services.notes.service import NotesService
 from services.users.dependencies import get_current_user
 
 router = APIRouter(prefix='/notes', tags=['notes'])
 
 
-@router.get('/', response_model=list[NoteSchema])
+@router.get('', response_model=PaginatedNoteSchema)
 async def get_notes(
+    request: Request,
     current_user: User = Depends(get_current_user),
+    limit: int = Query(10, ge=1, le=100),
+    offset: int = Query(0, ge=0),
     db: AsyncSession = Depends(get_sqlalchemy_session)
 ):
-    response = await NotesService().get_notes(user_id=current_user.id, db=db)
+    response = await get_paginated_notes(
+        user_id=current_user.id,
+        offset=offset,
+        limit=limit,
+        request=request,
+        db=db
+    )
     return response
 
 
@@ -33,16 +43,16 @@ async def get_note(
     return response
 
 
-@router.post('/', response_model=NoteSchema)
+@router.post('', response_model=NoteSchema)
 async def create_note(
-    request: CreateNoteSchema,
+    request_body: CreateNoteSchema,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_sqlalchemy_session)
 ):
-    response = await NotesService().create_note(
-        title=request.title,
-        content=request.content,
-        tags=request.tags,
+    response = await NotesService.create_note(
+        title=request_body.title,
+        content=request_body.content,
+        tags=request_body.tags,
         user=current_user,
         db=db
     )
@@ -56,7 +66,7 @@ async def update_note(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_sqlalchemy_session)
 ):
-    response = await NotesService().update_note(
+    response = await NotesService.update_note(
         note_id=note_id,
         update_data=request.dict(exclude_unset=True),
         user_id=current_user.id,
@@ -71,7 +81,7 @@ async def delete_note(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_sqlalchemy_session)
 ):
-    await NotesService().delete_note(
+    await NotesService.delete_note(
         note_id=note_id,
         user_id=current_user.id,
         db=db

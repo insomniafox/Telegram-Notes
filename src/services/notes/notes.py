@@ -1,79 +1,34 @@
-from typing import Sequence
+from typing import Optional
 
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from fastapi import Depends, status
-
-from db.database import get_sqlalchemy_session
-from models.notes.models import Note
-from models.users.models import User
-from services.notes.exceptions import NoteServiceException
+from fastapi import Request
+from services.notes.service import NotesService
 
 
-class NotesService:
-    async def get_notes(
-        self,
-        db: AsyncSession = Depends(get_sqlalchemy_session),
-        **filters
-    ) -> Sequence[Note]:
-        query = await db.execute(select(Note).filter_by(**filters))
-        notes = query.scalars().all()
-        return notes
+async def get_paginated_notes(
+    db: AsyncSession,
+    request: Request,
+    user_id: int,
+    offset: Optional[int] = 10,
+    limit: Optional[int] = 10,
+    **filters
+) -> dict:
+    notes = await NotesService.get_notes(
+        user_id=user_id,
+        limit=limit,
+        offset=offset,
+        db=db,
+    )
+    total_count = await NotesService.count_notes(db=db)
 
-    async def get_note(
-        self,
-        note_id: int,
-        user_id: int,
-        db: AsyncSession = Depends(get_sqlalchemy_session),
-    ) -> Note:
-        result = await db.execute(select(Note).filter_by(id=note_id, user_id=user_id))
-        note = result.scalars().first()
-        if not note:
-            raise NoteServiceException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail='Note not found.'
-            )
-        return note
+    base_url = str(request.url.remove_query_params(("offset", "limit")))
+    next_url = f"{base_url}?limit={limit}&offset={offset + limit}" if offset + limit < total_count else None
+    previous_url = f"{base_url}?limit={limit}&offset={max(0, offset - limit)}" if offset > 0 else None
 
-    async def create_note(
-        self,
-        title: str,
-        content: str,
-        tags: list[str],
-        user: User,
-        db: AsyncSession = Depends(get_sqlalchemy_session)
-    ) -> Note:
-        note = Note(
-            title=title,
-            content=content,
-            tags=tags,
-            user_id=user.id
-        )
-        db.add(note)
-        await db.commit()
-        await db.refresh(note)
-        return note
-
-    async def update_note(
-        self,
-        note_id: int,
-        update_data: dict,
-        user_id: int,
-        db: AsyncSession = Depends(get_sqlalchemy_session)
-    ):
-        note: Note = await self.get_note(note_id=note_id, user_id=user_id, db=db)
-        for key, value in update_data.items():
-            setattr(note, key, value)
-        await db.commit()
-        await db.refresh(note)
-        return note
-
-    async def delete_note(
-        self,
-        note_id: int,
-        user_id: int,
-        db: AsyncSession = Depends(get_sqlalchemy_session)
-    ):
-        note: Note = await self.get_note(note_id=note_id, user_id=user_id, db=db)
-        await db.delete(note)
-        await db.commit()
+    response = {
+        'count': total_count,
+        'next': next_url,
+        'previous': previous_url,
+        'result': notes
+    }
+    return response
